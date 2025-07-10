@@ -310,7 +310,7 @@
 <footer>
 Toptan Satış İçin İletişime Geçin: <strong>Yazıcı İthalat</strong>
 </footer>
-<script>
+<button onclick="pdfOlustur()" style="position: fixed; bottom: 80px; right: 20px; background-color: #444; color: white; padding: 12px 20px; border-radius: 30px; border: none; cursor: pointer; font-weight: bold;">PDF olarak indir</button><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script>
 function guncelleWhatsappLink() {
     const baseUrl = "https://bahadirdenizyazici.github.io/yazici-ithalat/";
     const secilenler = Array.from(document.querySelectorAll('.urun-secimi:checked'))
@@ -321,5 +321,41 @@ function guncelleWhatsappLink() {
     document.querySelector('.whatsapp-button').setAttribute('href', wpLink);
 }
 document.querySelectorAll('.urun-secimi').forEach(cb => cb.addEventListener('change', guncelleWhatsappLink));
+</script><script>
+async function pdfOlustur() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const secilenler = Array.from(document.querySelectorAll('.urun-secimi:checked'));
+
+  if (secilenler.length === 0) {
+    alert("Lütfen en az bir ürün seçin.");
+    return;
+  }
+
+  let y = 20;
+  for (let i = 0; i < secilenler.length; i++) {
+    const imgPath = secilenler[i].value;
+    const fullUrl = "https://bahadirdenizyazici.github.io/yazici-ithalat/" + encodeURIComponent(imgPath);
+
+    const res = await fetch(fullUrl);
+    const blob = await res.blob();
+    const reader = new FileReader();
+    const dataUrl = await new Promise(resolve => {
+      reader.onloadend = () => resolve(reader.result);
+      reader.readAsDataURL(blob);
+    });
+
+    doc.addImage(dataUrl, 'JPEG', 15, y, 60, 60);
+    doc.text(fullUrl, 80, y + 30);
+    y += 70;
+
+    if (y > 250 && i < secilenler.length - 1) {
+      doc.addPage();
+      y = 20;
+    }
+  }
+
+  doc.save("secilen-urunler.pdf");
+}
 </script></body>
 </html>
